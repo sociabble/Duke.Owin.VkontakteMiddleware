@@ -1,3 +1,4 @@
 sources/obj/
 sources/bin/
 sources/packages/
+sources/_nugetBuild/PushLastPackageTemplate.bat

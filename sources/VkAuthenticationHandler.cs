@@ -160,8 +160,8 @@ namespace Duke.Owin.VkontakteMiddleware
         {
             AuthenticationProperties properties = null;
 
-            try
-            {
+            //try
+            //{
                 string code = "";
 
                 IReadableStringCollection query = Request.Query;
@@ -248,12 +248,12 @@ namespace Duke.Owin.VkontakteMiddleware
 
                 return new AuthenticationTicket(context.Identity, context.Properties);
 
-            }
-            catch (Exception ex)
-            {
-                _logger.WriteError(ex.Message);
-            }
-            return new AuthenticationTicket(null, properties);
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.WriteError(ex.Message);
+            //}
+            //return new AuthenticationTicket(null, properties);
         }
     }
 }

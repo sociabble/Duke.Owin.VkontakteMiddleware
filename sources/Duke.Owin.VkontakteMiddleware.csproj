@@ -76,6 +76,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>if $(ConfigurationName) == Release mkdir "$(SolutionDir)_nugetBuild\Release\"
+if $(ConfigurationName) == Release mkdir "$(SolutionDir)_nugetBuild\Release\$(ProjectName)\"
+if $(ConfigurationName) == Release "$(SolutionDir)_nugetBuild\nuget.exe" pack "$(ProjectPath)"  -IncludeReferencedProjects -Prop Configuration=Release -Verbosity detailed -OutputDirectory "$(SolutionDir)_nugetBuild\Release\$(ProjectName)"
+if $(ConfigurationName) == Release copy /Y "$(SolutionDir)_nugetBuild\PushLastPackageTemplate.bat"  "$(SolutionDir)_nugetBuild\Release\$(ProjectName)\Push_Last_$(ProjectName).bat"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
