@@ -23,7 +23,7 @@ namespace Duke.Owin.VkontakteMiddleware
         private const string GraphApiEndpoint = "https://api.vk.com/method/";
 
         private readonly ILogger _logger;
-        private readonly HttpClient _httpClient;        
+        private readonly HttpClient _httpClient;
 
         public VkAuthenticationHandler(HttpClient httpClient, ILogger logger)
         {
@@ -78,7 +78,7 @@ namespace Duke.Owin.VkontakteMiddleware
 
                 string state = Options.StateDataFormat.Protect(properties);
 
-                Options.StoreState = state;
+                //Options.StoreState = state;
 
                 string authorizationEndpoint =
                     "https://oauth.vk.com/authorize" +
@@ -86,6 +86,7 @@ namespace Duke.Owin.VkontakteMiddleware
                         "&redirect_uri=" + Uri.EscapeDataString(redirectUri) +
                         "&scope=" + Uri.EscapeDataString(scope) +
                         "&response_type=code" +
+                        "&state=" + state +
                         "&v=" + Uri.EscapeDataString(Options.Version);
 
                 Response.Redirect(authorizationEndpoint);
@@ -161,7 +162,7 @@ namespace Duke.Owin.VkontakteMiddleware
             AuthenticationProperties properties = null;
 
             //try
-            //{
+            {
                 string code = "";
 
                 IReadableStringCollection query = Request.Query;
@@ -172,16 +173,24 @@ namespace Duke.Owin.VkontakteMiddleware
                     code = values[0];
                 }
 
-                properties = Options.StateDataFormat.Unprotect(Options.StoreState);
-                if (properties == null)
-                {
-                    return null;
-                }
+                IList<string> states = query.GetValues("state");
+                var state = states != null && states.Count == 1 ? states[0] : null;
 
-                // OAuth2 10.12 CSRF
-                if (!ValidateCorrelationId(properties, _logger))
+                if (!string.IsNullOrWhiteSpace(state))
                 {
-                    return new AuthenticationTicket(null, properties);
+                    properties = Options.StateDataFormat.Unprotect(state);
+                    if (properties == null)
+                    {
+                        //return null;
+                        throw new Exception("Vk middleware - unprotecting state to get properties - properties is null");
+                    }
+
+                    // OAuth2 10.12 CSRF
+                    if (!ValidateCorrelationId(properties, _logger))
+                    {
+                        throw new Exception("Vk middleware - !ValidateCorrelationId - OAuth2 10.12 CSRF");
+                        //return new AuthenticationTicket(null, properties);
+                    }
                 }
 
                 string requestPrefix = Request.Scheme + Uri.SchemeDelimiter + Request.Host;
@@ -248,7 +257,7 @@ namespace Duke.Owin.VkontakteMiddleware
 
                 return new AuthenticationTicket(context.Identity, context.Properties);
 
-            //}
+            }
             //catch (Exception ex)
             //{
             //    _logger.WriteError(ex.Message);
